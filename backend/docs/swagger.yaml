@@ -1,0 +1,113 @@
+basePath: /
+definitions:
+  api.CreatePostRequest:
+    properties:
+      content:
+        example: Hello from Echo and SQLite
+        type: string
+      title:
+        example: First Post
+        type: string
+    type: object
+  api.ErrorResponse:
+    properties:
+      message:
+        example: post not found
+        type: string
+    type: object
+  store.Post:
+    properties:
+      content:
+        type: string
+      created_at:
+        type: string
+      id:
+        type: integer
+      title:
+        type: string
+    type: object
+info:
+  contact: {}
+  description: Simple Echo API with SQLite storage.
+  title: Posts API
+  version: "1.0"
+paths:
+  /posts:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/store.Post'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/api.ErrorResponse'
+      summary: List posts
+      tags:
+      - posts
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Post payload
+        in: body
+        name: payload
+        required: true
+        schema:
+          $ref: '#/definitions/api.CreatePostRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/store.Post'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/api.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/api.ErrorResponse'
+      summary: Create a post
+      tags:
+      - posts
+  /posts/{id}:
+    get:
+      parameters:
+      - description: Post ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/store.Post'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/api.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/api.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/api.ErrorResponse'
+      summary: Get post by ID
+      tags:
+      - posts
+schemes:
+- http
+swagger: "2.0"
