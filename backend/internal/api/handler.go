@@ -3,7 +3,6 @@ package api
 import (
 	"errors"
 	"net/http"
-	"strconv"
 	"strings"
 
 	"backend/internal/store"
@@ -49,15 +48,15 @@ func (h *Handler) ListPosts(c *echo.Context) error {
 // @Summary Get post by ID
 // @Tags posts
 // @Produce json
-// @Param id path int true "Post ID"
+// @Param id path string true "Post ID"
 // @Success 200 {object} store.Post
 // @Failure 400 {object} ErrorResponse
 // @Failure 404 {object} ErrorResponse
 // @Failure 500 {object} ErrorResponse
 // @Router /posts/{id} [get]
 func (h *Handler) GetPost(c *echo.Context) error {
-	id, err := strconv.ParseInt(c.Param("id"), 10, 64)
-	if err != nil || id < 1 {
+	id := strings.TrimSpace(c.Param("id"))
+	if id == "" {
 		return c.JSON(http.StatusBadRequest, ErrorResponse{Message: "invalid post id"})
 	}
 

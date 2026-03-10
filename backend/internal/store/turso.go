@@ -4,7 +4,6 @@ import (
 	"context"
 	"database/sql"
 	"errors"
-	"strings"
 	"time"
 
 	_ "turso.tech/database/tursogo"
@@ -13,7 +12,7 @@ import (
 var ErrPostNotFound = errors.New("post not found")
 
 type Post struct {
-	ID        int64     `json:"id" binding:"required"`
+	ID        string    `json:"id" binding:"required"`
 	Title     string    `json:"title" binding:"required"`
 	Content   string    `json:"content" binding:"required"`
 	Coauthor  *string   `json:"coauthor,omitempty"`
@@ -51,7 +50,7 @@ func (s *Store) Close() error {
 
 func (s *Store) ListPosts(ctx context.Context) ([]Post, error) {
 	rows, err := s.db.QueryContext(ctx, `
-		SELECT id, title, content, coauthor, created_at
+		SELECT uuid_str(id), title, content, coauthor, created_at
 		FROM posts
 		ORDER BY id ASC
 	`)
@@ -73,11 +72,11 @@ func (s *Store) ListPosts(ctx context.Context) ([]Post, error) {
 	return posts, rows.Err()
 }
 
-func (s *Store) GetPost(ctx context.Context, id int64) (Post, error) {
+func (s *Store) GetPost(ctx context.Context, id string) (Post, error) {
 	row := s.db.QueryRowContext(ctx, `
-		SELECT id, title, content, coauthor, created_at
+		SELECT uuid_str(id), title, content, coauthor, created_at
 		FROM posts
-		WHERE id = ?
+		WHERE id = uuid_blob(?)
 	`, id)
 
 	post, err := scanPost(row.Scan)
@@ -89,19 +88,40 @@ func (s *Store) GetPost(ctx context.Context, id int64) (Post, error) {
 }
 
 func (s *Store) CreatePost(ctx context.Context, input CreatePostInput) (Post, error) {
+	conn, err := s.db.Conn(ctx)
+	if err != nil {
+		return Post{}, err
+	}
+	defer conn.Close()
+
+	if _, err := conn.ExecContext(ctx, `BEGIN CONCURRENT`); err != nil {
+		return Post{}, err
+	}
+
+	committed := false
+	defer func() {
+		if committed {
+			return
+		}
+
+		_, _ = conn.ExecContext(context.Background(), `ROLLBACK`)
+	}()
+
 	createdAt := time.Now().UTC()
-	result, err := s.db.ExecContext(ctx, `
+	var id string
+	err = conn.QueryRowContext(ctx, `
 		INSERT INTO posts (title, content, coauthor, created_at)
 		VALUES (?, ?, ?, ?)
-	`, input.Title, input.Content, input.Coauthor, createdAt.Format(time.RFC3339Nano))
+		RETURNING uuid_str(id)
+	`, input.Title, input.Content, input.Coauthor, createdAt.Format(time.RFC3339Nano)).Scan(&id)
 	if err != nil {
 		return Post{}, err
 	}
 
-	id, err := result.LastInsertId()
-	if err != nil {
+	if _, err := conn.ExecContext(ctx, `COMMIT`); err != nil {
 		return Post{}, err
 	}
+	committed = true
 
 	return Post{
 		ID:        id,
@@ -113,28 +133,25 @@ func (s *Store) CreatePost(ctx context.Context, input CreatePostInput) (Post, er
 }
 
 func (s *Store) init(ctx context.Context) error {
+	if err := s.enableMVCC(ctx); err != nil {
+		return err
+	}
+
 	_, err := s.db.ExecContext(ctx, `
 		CREATE TABLE IF NOT EXISTS posts (
-			id INTEGER PRIMARY KEY AUTOINCREMENT,
+			id UUID PRIMARY KEY DEFAULT (uuid7()),
 			title TEXT NOT NULL,
 			content TEXT NOT NULL,
 			coauthor TEXT,
 			created_at TEXT NOT NULL
 		)
 	`)
-	if err != nil {
-		return err
-	}
+	return err
+}
 
-	_, err = s.db.ExecContext(ctx, `
-		ALTER TABLE posts
-		ADD COLUMN coauthor TEXT
-	`)
-	if err != nil && !strings.Contains(err.Error(), "duplicate column name") {
-		return err
-	}
-
-	return nil
+func (s *Store) enableMVCC(ctx context.Context) error {
+	_, err := s.db.ExecContext(ctx, `PRAGMA journal_mode = 'mvcc'`)
+	return err
 }
 
 type scanner func(dest ...any) error
