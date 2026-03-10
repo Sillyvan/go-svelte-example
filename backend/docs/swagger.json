@@ -4,7 +4,7 @@
     ],
     "swagger": "2.0",
     "info": {
-        "description": "Simple Echo API with SQLite storage.",
+        "description": "Simple Echo API with a local Turso database file.",
         "title": "Posts API",
         "contact": {},
         "version": "1.0"
@@ -132,10 +132,18 @@
     "definitions": {
         "api.CreatePostRequest": {
             "type": "object",
+            "required": [
+                "content",
+                "title"
+            ],
             "properties": {
+                "coauthor": {
+                    "type": "string",
+                    "example": "Jane Doe"
+                },
                 "content": {
                     "type": "string",
-                    "example": "Hello from Echo and SQLite"
+                    "example": "Hello from Echo and Turso"
                 },
                 "title": {
                     "type": "string",
@@ -145,6 +153,9 @@
         },
         "api.ErrorResponse": {
             "type": "object",
+            "required": [
+                "message"
+            ],
             "properties": {
                 "message": {
                     "type": "string",
@@ -154,7 +165,16 @@
         },
         "store.Post": {
             "type": "object",
+            "required": [
+                "content",
+                "created_at",
+                "id",
+                "title"
+            ],
             "properties": {
+                "coauthor": {
+                    "type": "string"
+                },
                 "content": {
                     "type": "string"
                 },

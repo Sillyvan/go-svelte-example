@@ -2,21 +2,31 @@ basePath: /
 definitions:
   api.CreatePostRequest:
     properties:
+      coauthor:
+        example: Jane Doe
+        type: string
       content:
-        example: Hello from Echo and SQLite
+        example: Hello from Echo and Turso
         type: string
       title:
         example: First Post
         type: string
+    required:
+    - content
+    - title
     type: object
   api.ErrorResponse:
     properties:
       message:
         example: post not found
         type: string
+    required:
+    - message
     type: object
   store.Post:
     properties:
+      coauthor:
+        type: string
       content:
         type: string
       created_at:
@@ -25,10 +35,15 @@ definitions:
         type: integer
       title:
         type: string
+    required:
+    - content
+    - created_at
+    - id
+    - title
     type: object
 info:
   contact: {}
-  description: Simple Echo API with SQLite storage.
+  description: Simple Echo API with a local Turso database file.
   title: Posts API
   version: "1.0"
 paths:

@@ -14,8 +14,8 @@
 		return fallback;
 	}
 
-	function getApiMessage(response: { data?: ApiErrorResponse } | undefined, fallback: string) {
-		return response?.data?.message?.trim() || fallback;
+	function getApiMessage(response: ApiErrorResponse, fallback: string) {
+		return response.message.trim() || fallback;
 	}
 </script>
 
@@ -33,13 +33,18 @@
 	<p>Loading post...</p>
 {:else if postQuery.isError}
 	<p>{getErrorMessage(postQuery.error, 'Failed to load post.')}</p>
-{:else if postQuery.data?.status !== 200}
-	<p>{getApiMessage(postQuery.data, 'Failed to load post.')}</p>
+{:else if !postQuery.data}
+	<p>Failed to load post.</p>
+{:else if postQuery.data.status !== 200}
+	<p>{getApiMessage(postQuery.data.data, 'Failed to load post.')}</p>
 {:else}
 	<article>
 		<h2>{postQuery.data.data.title}</h2>
 		<p>{postQuery.data.data.content}</p>
-		<p>{postQuery.data.data.created_at ?? 'Unknown date'}</p>
+		{#if postQuery.data.data.coauthor}
+			<p>Coauthor: {postQuery.data.data.coauthor}</p>
+		{/if}
+		<p>{postQuery.data.data.created_at}</p>
 		<p>ID: {postQuery.data.data.id}</p>
 	</article>
 {/if}

@@ -136,10 +136,18 @@ const docTemplate = `{
     "definitions": {
         "api.CreatePostRequest": {
             "type": "object",
+            "required": [
+                "content",
+                "title"
+            ],
             "properties": {
+                "coauthor": {
+                    "type": "string",
+                    "example": "Jane Doe"
+                },
                 "content": {
                     "type": "string",
-                    "example": "Hello from Echo and SQLite"
+                    "example": "Hello from Echo and Turso"
                 },
                 "title": {
                     "type": "string",
@@ -149,6 +157,9 @@ const docTemplate = `{
         },
         "api.ErrorResponse": {
             "type": "object",
+            "required": [
+                "message"
+            ],
             "properties": {
                 "message": {
                     "type": "string",
@@ -158,7 +169,16 @@ const docTemplate = `{
         },
         "store.Post": {
             "type": "object",
+            "required": [
+                "content",
+                "created_at",
+                "id",
+                "title"
+            ],
             "properties": {
+                "coauthor": {
+                    "type": "string"
+                },
                 "content": {
                     "type": "string"
                 },
@@ -183,7 +203,7 @@ var SwaggerInfo = &swag.Spec{
 	BasePath:         "/",
 	Schemes:          []string{"http"},
 	Title:            "Posts API",
-	Description:      "Simple Echo API with SQLite storage.",
+	Description:      "Simple Echo API with a local Turso database file.",
 	InfoInstanceName: "swagger",
 	SwaggerTemplate:  docTemplate,
 	LeftDelim:        "{{",

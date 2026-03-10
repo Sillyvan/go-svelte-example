@@ -22,19 +22,21 @@ import type {
 } from '@tanstack/svelte-query';
 
 export interface ApiCreatePostRequest {
-  content?: string;
-  title?: string;
+  coauthor?: string;
+  content: string;
+  title: string;
 }
 
 export interface ApiErrorResponse {
-  message?: string;
+  message: string;
 }
 
 export interface StorePost {
-  content?: string;
-  created_at?: string;
-  id?: number;
-  title?: string;
+  coauthor?: string;
+  content: string;
+  created_at: string;
+  id: number;
+  title: string;
 }
 
 /**

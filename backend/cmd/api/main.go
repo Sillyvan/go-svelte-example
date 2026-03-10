@@ -15,16 +15,16 @@ import (
 
 // @title Posts API
 // @version 1.0
-// @description Simple Echo API with SQLite storage.
+// @description Simple Echo API with a local Turso database file.
 // @BasePath /
 // @schemes http
 func main() {
 	dbPath := envOrDefault("DB_PATH", "app.db")
 	port := envOrDefault("PORT", "8080")
 
-	postStore, err := store.NewSQLiteStore(dbPath)
+	postStore, err := store.NewStore(dbPath)
 	if err != nil {
-		log.Fatalf("failed to initialize sqlite store: %v", err)
+		log.Fatalf("failed to initialize Turso store: %v", err)
 	}
 	defer postStore.Close()
 
@@ -39,7 +39,7 @@ func main() {
 	e.POST("/posts", handler.CreatePost)
 	e.GET("/swagger/*", echoSwagger.WrapHandler)
 
-	log.Printf("server listening on :%s", port)
+	log.Printf("server listening on :%s using Turso database file %q", port, dbPath)
 	if err := e.Start(":" + port); err != nil {
 		log.Fatal(err)
 	}

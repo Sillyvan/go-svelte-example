@@ -12,19 +12,20 @@ import (
 )
 
 type Handler struct {
-	store *store.SQLiteStore
+	store *store.Store
 }
 
 type CreatePostRequest struct {
-	Title   string `json:"title" example:"First Post"`
-	Content string `json:"content" example:"Hello from Echo and SQLite"`
+	Title    string  `json:"title" binding:"required" example:"First Post"`
+	Content  string  `json:"content" binding:"required" example:"Hello from Echo and Turso"`
+	Coauthor *string `json:"coauthor,omitempty" example:"Jane Doe"`
 }
 
 type ErrorResponse struct {
-	Message string `json:"message" example:"post not found"`
+	Message string `json:"message" binding:"required" example:"post not found"`
 }
 
-func NewHandler(postStore *store.SQLiteStore) *Handler {
+func NewHandler(postStore *store.Store) *Handler {
 	return &Handler{store: postStore}
 }
 
@@ -94,9 +95,18 @@ func (h *Handler) CreatePost(c *echo.Context) error {
 		return c.JSON(http.StatusBadRequest, ErrorResponse{Message: "title and content are required"})
 	}
 
+	var coauthor *string
+	if request.Coauthor != nil {
+		trimmedCoauthor := strings.TrimSpace(*request.Coauthor)
+		if trimmedCoauthor != "" {
+			coauthor = &trimmedCoauthor
+		}
+	}
+
 	post, err := h.store.CreatePost(c.Request().Context(), store.CreatePostInput{
-		Title:   request.Title,
-		Content: request.Content,
+		Title:    request.Title,
+		Content:  request.Content,
+		Coauthor: coauthor,
 	})
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, ErrorResponse{Message: "failed to create post"})
