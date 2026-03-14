@@ -5,8 +5,7 @@ export default defineConfig({
 	plugins: [sveltekit()],
 	server: {
 		proxy: {
-			'/posts': 'http://localhost:8080',
-			'/swagger': 'http://localhost:8080'
+			'/posts': 'http://localhost:8080'
 		}
 	}
 });

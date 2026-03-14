@@ -1,0 +1,16 @@
+{
+  "name": "go-svelte-example-backend",
+  "main": "./build/worker.mjs",
+  "compatibility_date": "2026-03-14",
+  "build": {
+    "command": "npm run build",
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "go-svelte-example-backend",
+      "database_id": "6c5a59c5-cd29-414b-bbb2-301a0602cd5f",
+      "migrations_dir": "./migrations",
+    },
+  ],
+}

@@ -75,8 +75,6 @@
 
 <h1>Posts</h1>
 
-<p><a href="/swagger">Swagger UI</a></p>
-
 <h2>Create Post</h2>
 
 <form onsubmit={handleSubmit}>
