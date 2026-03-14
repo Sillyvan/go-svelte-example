@@ -1,54 +1,64 @@
 package main
 
 import (
-	"log"
-	"os"
-
-	_ "backend/docs"
 	"backend/internal/api"
 	"backend/internal/store"
+	"log"
+	"os"
+	"strings"
 
 	"github.com/labstack/echo/v5"
 	"github.com/labstack/echo/v5/middleware"
-	echoSwagger "github.com/swaggo/echo-swagger/v2"
+	"github.com/syumai/workers"
 )
 
 // @title Posts API
 // @version 1.0
-// @description Simple Echo API with a local Turso database file.
+// @description Simple Echo API with SQLite-compatible storage.
 // @BasePath /
 // @schemes http
 func main() {
-	dbPath := envOrDefault("DB_PATH", "app.db")
-	port := envOrDefault("PORT", "8080")
-
-	postStore, err := store.NewStore(dbPath)
+	postStore, err := store.NewStore()
 	if err != nil {
-		log.Fatalf("failed to initialize Turso store: %v", err)
+		log.Fatalf("failed to initialize store: %v", err)
 	}
 	defer postStore.Close()
 
 	e := echo.New()
 	e.Use(middleware.RequestLogger())
 	e.Use(middleware.Recover())
+	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
+		AllowOrigins: allowedOrigins(),
+		AllowMethods: []string{"GET", "POST", "OPTIONS"},
+		AllowHeaders: []string{echo.HeaderOrigin, echo.HeaderContentType, echo.HeaderAccept},
+	}))
 
 	handler := api.NewHandler(postStore)
 
 	e.GET("/posts", handler.ListPosts)
 	e.GET("/posts/:id", handler.GetPost)
 	e.POST("/posts", handler.CreatePost)
-	e.GET("/swagger/*", echoSwagger.WrapHandler)
 
-	log.Printf("server listening on :%s using Turso database file %q", port, dbPath)
-	if err := e.Start(":" + port); err != nil {
-		log.Fatal(err)
-	}
+	log.Printf("serving posts API using %s", store.SourceDescription())
+	workers.Serve(e)
 }
 
-func envOrDefault(key, fallback string) string {
-	if value := os.Getenv(key); value != "" {
-		return value
+func allowedOrigins() []string {
+	value := strings.TrimSpace(os.Getenv("CORS_ALLOW_ORIGINS"))
+	if value == "" {
+		return []string{"*"}
 	}
 
-	return fallback
+	parts := strings.Split(value, ",")
+	origins := make([]string, 0, len(parts))
+	for _, part := range parts {
+		if origin := strings.TrimSpace(part); origin != "" {
+			origins = append(origins, origin)
+		}
+	}
+	if len(origins) == 0 {
+		return []string{"*"}
+	}
+
+	return origins
 }

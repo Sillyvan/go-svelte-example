@@ -1,0 +1,12 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "go-svelte-example",
+  "compatibility_date": "2026-03-14",
+  "assets": {
+    "directory": "./build",
+    "not_found_handling": "single-page-application"
+  },
+   "compatibility_flags": [
+      "nodejs_compat"
+    ]
+}

@@ -9,6 +9,7 @@ import {
   createMutation,
   createQuery
 } from '@tanstack/svelte-query';
+import { apiUrl } from '../base-url';
 import type {
   CreateMutationOptions,
   CreateMutationResult,
@@ -35,7 +36,7 @@ export interface StorePost {
   coauthor?: string;
   content: string;
   created_at: string;
-  id: number;
+  id: string;
   title: string;
 }
 
@@ -66,7 +67,7 @@ export const getGetPostsUrl = () => {
 
   
 
-  return `/posts`
+  return apiUrl(`/posts`)
 }
 
 export const getPosts = async ( options?: RequestInit): Promise<getPostsResponse> => {
@@ -171,7 +172,7 @@ export const getPostPostsUrl = () => {
 
   
 
-  return `/posts`
+  return apiUrl(`/posts`)
 }
 
 export const postPosts = async (apiCreatePostRequest: ApiCreatePostRequest, options?: RequestInit): Promise<postPostsResponse> => {
@@ -272,15 +273,15 @@ export type getPostsIdResponseError = (getPostsIdResponse400 | getPostsIdRespons
 
 export type getPostsIdResponse = (getPostsIdResponseSuccess | getPostsIdResponseError)
 
-export const getGetPostsIdUrl = (id: number,) => {
+export const getGetPostsIdUrl = (id: string,) => {
 
 
   
 
-  return `/posts/${id}`
+  return apiUrl(`/posts/${id}`)
 }
 
-export const getPostsId = async (id: number, options?: RequestInit): Promise<getPostsIdResponse> => {
+export const getPostsId = async (id: string, options?: RequestInit): Promise<getPostsIdResponse> => {
   
   const res = await fetch(getGetPostsIdUrl(id),
   {      
@@ -301,14 +302,14 @@ export const getPostsId = async (id: number, options?: RequestInit): Promise<get
 
 
 
-export const getGetPostsIdQueryKey = (id: number,) => {
+export const getGetPostsIdQueryKey = (id: string,) => {
     return [
     `/posts/${id}`
     ] as const;
     }
 
     
-export const getGetPostsIdQueryOptions = <TData = Awaited<ReturnType<typeof getPostsId>>, TError = ApiErrorResponse>(id: number, options?: { query?:Partial<CreateQueryOptions<Awaited<ReturnType<typeof getPostsId>>, TError, TData>>, fetch?: RequestInit}
+export const getGetPostsIdQueryOptions = <TData = Awaited<ReturnType<typeof getPostsId>>, TError = ApiErrorResponse>(id: string, options?: { query?:Partial<CreateQueryOptions<Awaited<ReturnType<typeof getPostsId>>, TError, TData>>, fetch?: RequestInit}
 ) => {
 
 const {query: queryOptions, fetch: fetchOptions} = options ?? {};
@@ -323,7 +324,7 @@ const {query: queryOptions, fetch: fetchOptions} = options ?? {};
 
       
 
-   return  { queryKey, queryFn, enabled: !!(id), ...queryOptions} as CreateQueryOptions<Awaited<ReturnType<typeof getPostsId>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+   return  { queryKey, queryFn, enabled: id.trim().length > 0, ...queryOptions} as CreateQueryOptions<Awaited<ReturnType<typeof getPostsId>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
 }
 
 export type GetPostsIdQueryResult = NonNullable<Awaited<ReturnType<typeof getPostsId>>>
@@ -335,9 +336,9 @@ export type GetPostsIdQueryError = ApiErrorResponse
  */
 
 export function createGetPostsId<TData = Awaited<ReturnType<typeof getPostsId>>, TError = ApiErrorResponse>(
- id: () =>  number, options?: () => { query?:Partial<CreateQueryOptions<Awaited<ReturnType<typeof getPostsId>>, TError, TData>>, fetch?: RequestInit}
+ id: () =>  string, options?: () => { query?:Partial<CreateQueryOptions<Awaited<ReturnType<typeof getPostsId>>, TError, TData>>, fetch?: RequestInit}
  , queryClient?: () => QueryClient 
- ): CreateQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+): CreateQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
   
 

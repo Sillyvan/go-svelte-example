@@ -37,6 +37,20 @@ To create a production version of your app:
 npm run build
 ```
 
+For a deployed frontend that talks to the deployed backend, set `PUBLIC_API_BASE_URL` at build time:
+
+```sh
+PUBLIC_API_BASE_URL=https://go-svelte-example-backend.jubati911.workers.dev npm run build
+```
+
+For Cloudflare Pages / Workers static hosting:
+
+- Root directory: `frontend`
+- Build command: `npm run build`
+- Output directory: `build`
+- Node version: `22.18.0` or newer
+- Environment variable: `PUBLIC_API_BASE_URL=https://go-svelte-example-backend.jubati911.workers.dev`
+
 You can preview the production build with `npm run preview`.
 
 > To deploy your app, you may need to install an [adapter](https://svelte.dev/docs/kit/adapters) for your target environment.

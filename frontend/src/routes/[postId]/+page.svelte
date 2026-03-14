@@ -2,7 +2,7 @@
 	import { page } from '$app/state';
 	import { createGetPostsId, type ApiErrorResponse } from '$lib/api/generated/posts';
 
-	let postId = $derived(Number(page.params.postId));
+	let postId = $derived((page.params.postId ?? '').trim());
 
 	const postQuery = createGetPostsId(() => postId);
 
@@ -27,7 +27,7 @@
 
 <h1>Post Detail</h1>
 
-{#if Number.isNaN(postId) || postId < 1}
+{#if postId === ''}
 	<p>Invalid post id.</p>
 {:else if postQuery.isPending}
 	<p>Loading post...</p>
